@@ -8,7 +8,7 @@ export class FluxEcoHttpServer {
     constructor(config, middlewareChain) {
         /**
          * The server configuration object.
-         * @type {ServerConfig}
+         * @type {FluxEcoConfig}
          */
         this.config = config;
 
@@ -27,7 +27,7 @@ export class FluxEcoHttpServer {
 
     /**
      * Creates an instance of HttpServer.
-     * @param {ServerConfig} config - The server configuration object.
+     * @param {FluxEcoConfig} config - The server configuration object.
      * @param {MiddlewareChain} middlewareChain - The middleware chain to use for processing HTTP requests.
      * @return FluxEcoHttpServer
      */
