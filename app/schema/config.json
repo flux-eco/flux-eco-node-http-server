@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/flux-eco/flux-eco-http-server/main/app/config/config.json",
   "definitions": {
     "serverConfig": {
       "type": "object",
