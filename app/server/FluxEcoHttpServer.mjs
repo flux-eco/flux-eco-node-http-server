@@ -3,12 +3,8 @@ const http = require('http');
 /**
  * Represents the HTTP server.
  */
-export class HttpServer {
-    /**
-     * Creates an instance of HttpServer.
-     * @param {Config} config - The server configuration object.
-     * @param {MiddlewareChain} middlewareChain - The middleware chain to use for processing HTTP requests.
-     */
+export class FluxEcoHttpServer {
+
     constructor(config, middlewareChain) {
         /**
          * The server configuration object.
@@ -30,6 +26,16 @@ export class HttpServer {
     }
 
     /**
+     * Creates an instance of HttpServer.
+     * @param {Config} config - The server configuration object.
+     * @param {MiddlewareChain} middlewareChain - The middleware chain to use for processing HTTP requests.
+     * @return FluxEcoHttpServer
+     */
+    static async new(config, middlewareChain) {
+        return new FluxEcoHttpServer(config, middlewareChain)
+    }
+
+    /**
      * Handles an incoming HTTP request.
      * @param {http.IncomingMessage} req - The incoming HTTP request object.
      * @param {http.ServerResponse} res - The HTTP response object to send the response through.
@@ -43,7 +49,7 @@ export class HttpServer {
      * @returns {void}
      */
     start() {
-        const { port, host } = this.config;
+        const {port, host} = this.config;
 
         // Start the server listening on the specified port and host
         this.httpServer.listen(port, host, () => {

@@ -1,6 +1,14 @@
 class MiddlewareChain {
+    /**
+     * @private
+     * @param middlewares
+     */
     constructor(middlewares = []) {
         this.middlewares = middlewares;
+    }
+
+    static async new(middlewares = []) {
+        return new MiddlewareChain(middlewares);
     }
 
     handleRequest(request, response) {

@@ -1,6 +1,6 @@
 # flux-eco-http-server
 
-Flux Eco HTTP Server is a customizable HTTP server designed for use in Flux Eco applications. It allows you to easily create HTTP endpoints and manage incoming requests with middleware.
+flux-eco-http-server is a customizable HTTP server designed for use in Flux Eco applications. It allows you to easily create HTTP endpoints and manage incoming requests with middleware.
 
 
 ## Installation
@@ -15,8 +15,8 @@ const { HttpServer, MiddlewareChain } = require('flux-eco-http-server');
 const config = require('./config.json');
 const middlewareClasses = require('./middlewares');
 
-const middlewareChain = new MiddlewareChain(middlewareClasses, config);
-const server = new HttpServer(config, middlewareChain);
+const middlewareChain = await MiddlewareChain.new(middlewareClasses, config);
+const server = await FluxEcoHttpServer.new(config, middlewareChain);
 
 server.start();
 ```
