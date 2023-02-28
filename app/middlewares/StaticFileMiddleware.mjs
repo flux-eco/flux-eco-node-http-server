@@ -5,7 +5,8 @@ class StaticFileMiddleware {
 
     handleRequest(req, res, next) {
         const { pathname } = url.parse(req.url);
-        const filePath = path.join(this.staticPath, pathname);
+        const sanitizedPathname = path.normalize(pathname).replace(/^(\.\.[/\\])+/, '');
+        const filePath = path.join(this.staticPath, sanitizedPathname);
 
         fs.access(filePath, fs.constants.R_OK, (err) => {
             if (err) {
