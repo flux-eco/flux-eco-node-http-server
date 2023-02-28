@@ -1,4 +1,4 @@
-const http = require('http');
+import { createServer as createServerHttp } from "node:http";
 
 /**
  * Represents the HTTP server.
@@ -22,7 +22,7 @@ export class FluxEcoHttpServer {
          * The HTTP server instance.
          * @type {http.Server}
          */
-        this.httpServer = http.createServer(this.handleRequest.bind(this));
+        this.httpServer = create_server(options, this.handleRequest.bind(this));
     }
 
     /**
