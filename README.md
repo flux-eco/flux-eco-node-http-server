@@ -4,7 +4,7 @@ flux-eco-http-server is a customizable HTTP server designed for use in flux-eco 
 
 
 ## Installation
-flux-eco-http-server Server is available as on github.
+flux-eco-http-server is available as on github.
 
 ## Usage
 
