@@ -16,7 +16,13 @@ class StaticFileMiddleware {
             }
 
             const fileStream = fs.createReadStream(filePath);
-            fileStream.pipe(res);
+            pipeline(fileStream, res, (err) => {
+              if (err) {
+                console.error(`Error reading file: ${filePath}`, err);
+                res.statusCode = 500;
+                res.end();
+              }
+            });
         });
     }
 }
