@@ -1,0 +1,225 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://fluxlabs.ch/flux-eco/flux-eco-http-server.json",
+  "type": "object",
+  "properties": {
+    "endpoints": {
+      "type": "object",
+      "properties": {
+        "http": {
+          "type": "object",
+          "properties": {
+            "serverConfig": {
+              "$ref": "#/definitions/httpServerConfig"
+            },
+            "policies": {
+              "$ref": "#/definitions/policiesConfig"
+            },
+            "static": {
+              "$ref": "#/definitions/staticEndpointConfig"
+            },
+            "middlewareChain": {
+              "type": "string",
+              "enum": [
+                "ActionMiddleware",
+                "BackendProxyMiddleware",
+                "ConfigMiddleware",
+                "ErrorHandlingMiddleware",
+                "LoggerMiddleware",
+                "LoggingMiddleware",
+                "PoliciesMiddleware",
+                "RequestContentLoggerMiddleware",
+                "ResponseContentLoggerMiddleware",
+                "ServerMiddleware",
+                "StaticFileMiddleware"
+              ]
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/apiEndpointConfig"
+              }
+            }
+          },
+          "required": [
+            "serverConfig"
+          ]
+        }
+      },
+      "required": [
+        "http"
+      ]
+    },
+    "bindings": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": {
+        "$ref": "#/definitions/binding"
+      }
+    }
+  },
+  "required": [
+    "endpoints"
+  ],
+  "definitions": {
+    "binding": {
+      "type": "object",
+      "properties": {
+        "serverConfig": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/httpServerConfig"
+            },
+            {
+              "$ref": "#/definitions/databaseServerConfig"
+            }
+          ]
+        },
+        "boundActions": {
+            "boundActionCallable": {
+              "type": "string",
+              "function": true
+            }
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "handlerType": {
+                "type": "string"
+              }
+            }
+          },
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "targetPath": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path",
+              "targetPath"
+            ]
+          }
+        }
+      },
+      "required": [
+        "serverConfig",
+        "boundActions"
+      ]
+    },
+    "httpServerConfig": {
+      "type": "object",
+      "properties": {
+        "port": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "port",
+        "host"
+      ]
+    },
+    "databaseServerConfig": {
+      "$ref": "../../../flux-eco-database-client/app/schema/flux-eco-database-client-schema.json#properties/databaseServerConfig"
+    },
+    "policiesConfig": {
+      "type": "object",
+      "properties": {
+        "allowedHeaders": {
+          "type": "string"
+        },
+        "allowedIps": {
+          "type": "string"
+        }
+      }
+    },
+    "staticEndpointConfig": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE"
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "response": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "string",
+                "number",
+                "object",
+                "array"
+              ]
+            }
+          },
+          "required": [
+            "type"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "method",
+        "path",
+        "response"
+      ]
+    },
+    "apiEndpointConfig": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE"
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "actionCallable": {
+          "type": "string",
+          "function": true
+        }
+      },
+      "required": [
+        "method",
+        "path",
+        "actionCallable"
+      ]
+    }
+  }
+}

@@ -1,24 +1,24 @@
 /**
  * Represents the configuration for the HTTP server.
  */
-class Config {
+class ServerConfig {
     /**
      * Creates an instance of Config.
      * @param {Object} configObj - The configuration object loaded from a JSON file.
-     */
-    constructor(configObj) {
+     *   * @param {Object<string, Function>} actionCallables - An object mapping action names to their corresponding callable functions.     */
+    constructor(configObj, actionCallables) {
         this.server = configObj.endpoints.http.server;
         this.static = configObj.endpoints.http.static;
         this.backendServer = configObj.bindings.backend.server;
         this.boundActions = configObj.bindings.backend.boundActions;
-        this.actions = configObj.endpoints.http.actions.map(action => {
+        this.actions = configObj.endpoints.http.actions.map((action) => {
+            const actionCallable = actionCallables[action.actionCallable];
             return {
                 actionPath: action.actionPath,
                 method: action.method,
                 responseFile: action.responseFile,
-                apiName: action.apiName,
-                actionName: action.actionName,
-                headers: action.headers || {}
+                headers: action.headers || {},
+                actionCallable
             };
         });
     }
@@ -56,7 +56,7 @@ class Config {
     }
 
     /**
-     * Gets the actions configuration.
+     * Gets the actions' configuration.
      * @returns {Object[]} The actions configuration.
      */
     getActionsConfig() {
