@@ -1,8 +1,20 @@
 class BackendProxyMiddleware {
+
+    #backendServerUrl;
+    #boundActions;
+
     constructor(backendServerUrl, boundActions) {
         this.backendServerUrl = backendServerUrl;
         this.boundActions = boundActions;
     }
+
+    /**
+     * @param {FluxEcoHttpServerConfig} config
+     */
+    static new(config) {
+        return new BackendProxyMiddleware(config.actions)
+    }
+
 
     handleRequest(req, res, next) {
         const urlParts = req.url.split('/');

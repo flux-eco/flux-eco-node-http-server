@@ -3,145 +3,33 @@
   "$id": "https://fluxlabs.ch/flux-eco/flux-eco-http-server.json",
   "type": "object",
   "properties": {
-    "endpoints": {
-      "type": "object",
-      "properties": {
-        "http": {
-          "type": "object",
-          "properties": {
-            "serverConfig": {
-              "$ref": "#/definitions/httpServerConfig"
-            },
-            "policies": {
-              "$ref": "#/definitions/policiesConfig"
-            },
-            "static": {
-              "$ref": "#/definitions/staticEndpointConfig"
-            },
-            "middlewareChain": {
-              "type": "string",
-              "enum": [
-                "ActionMiddleware",
-                "BackendProxyMiddleware",
-                "ConfigMiddleware",
-                "ErrorHandlingMiddleware",
-                "LoggerMiddleware",
-                "LoggingMiddleware",
-                "PoliciesMiddleware",
-                "RequestContentLoggerMiddleware",
-                "ResponseContentLoggerMiddleware",
-                "ServerMiddleware",
-                "StaticFileMiddleware"
-              ]
-            },
-            "actions": {
-              "type": "object",
-              "additionalProperties": {
-                "$ref": "#/definitions/apiEndpointConfig"
-              }
-            }
-          },
-          "required": [
-            "serverConfig"
-          ]
-        }
-      },
-      "required": [
-        "http"
-      ]
+    "serverSettings": {
+      "$ref": "#/definitions/serverSettings"
     },
-    "bindings": {
+    "policies": {
+      "$ref": "#/definitions/policies"
+    },
+    "static": {
+      "$ref": "#/definitions/static"
+    },
+    "middlewares": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/middlewares"
+      }
+    },
+    "actions": {
       "type": "object",
-      "properties": {},
       "additionalProperties": {
-        "$ref": "#/definitions/binding"
+        "$ref": "#/definitions/actions"
       }
     }
   },
   "required": [
-    "endpoints"
+    "server"
   ],
   "definitions": {
-    "apiEndpointConfig": {
-      "type": "object",
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "method": {
-          "type": "string",
-          "enum": [
-            "GET",
-            "POST",
-            "PUT",
-            "DELETE"
-          ]
-        },
-        "path": {
-          "type": "string"
-        },
-        "actionType": {
-          "enum": [
-            "apiActionCallable",
-            "boundActionCallable"
-          ]
-        }
-      },
-      "required": [
-        "method",
-        "path",
-        "actionType"
-      ]
-    },
-    "binding": {
-      "type": "object",
-      "properties": {
-        "serverConfig": {
-          "oneOf": [
-            {
-              "$ref": "#/definitions/httpServerConfig"
-            },
-            {
-              "$ref": "#/definitions/databaseServerConfig"
-            }
-          ]
-        },
-        "boundActions": {
-          "boundActionCallable": {
-            "type": "string",
-            "function": true
-          }
-        },
-        "additionalProperties": {
-          "type": "object",
-          "properties": {
-            "handlerType": {
-              "type": "string"
-            }
-          }
-        },
-        "items": {
-          "type": "object",
-          "properties": {
-            "path": {
-              "type": "string"
-            },
-            "targetPath": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "path",
-            "targetPath"
-          ]
-        }
-      },
-      "required": [
-        "serverConfig",
-        "boundActions"
-      ]
-    },
-    "httpServerConfig": {
+    "serverSettings": {
       "type": "object",
       "properties": {
         "port": {
@@ -156,12 +44,12 @@
         "host"
       ]
     },
-    "databaseServerConfig": {
-      "$ref": "../../../flux-eco-database-client/app/schema/flux-eco-database-client-schema.json#properties/databaseServerConfig"
-    },
-    "policiesConfig": {
+    "policies": {
       "type": "object",
       "properties": {
+        "requiredHeaders": {
+          "type": "string"
+        },
         "allowedHeaders": {
           "type": "string"
         },
@@ -170,7 +58,66 @@
         }
       }
     },
-    "staticEndpointConfig": {
+    "middlewares": {
+      "type": "string",
+      "enum": [
+        "ActionMiddleware",
+        "BackendProxyMiddleware",
+        "ConfigMiddleware",
+        "ErrorHandlingMiddleware",
+        "LoggerMiddleware",
+        "LoggingMiddleware",
+        "CheckPoliciesMiddleware",
+        "RequestContentLoggerMiddleware",
+        "ResponseContentLoggerMiddleware",
+        "ServerMiddleware",
+        "StaticFileMiddleware"
+      ]
+    },
+    "actions": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE"
+          ]
+        },
+        "policies": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": {}
+            }
+          ]
+        },
+        "handlerType": {
+          "type": "string",
+          "enum": [
+            "callable",
+            "httpRequest"
+            ]
+        }
+      },
+      "required": [
+        "path",
+        "method",
+        "handlerType"
+      ]
+    },
+    "static": {
       "type": "object",
       "properties": {
         "name": {
