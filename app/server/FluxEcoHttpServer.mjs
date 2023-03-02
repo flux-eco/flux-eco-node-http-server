@@ -1,4 +1,5 @@
 import { createServer as createServerHttp } from "node:http";
+import http from "http";
 
 /**
  * Represents the HTTP server.
@@ -16,19 +17,19 @@ export class FluxEcoHttpServer {
          * The middleware chain to use for processing HTTP requests.
          * @type {MiddlewareChain}
          */
-        this.middlewareChain = middlewareChain;
+        this.middlewareChain = middlewareChain
 
         /**
          * The HTTP server instance.
          * @type {http.Server}
          */
-        this.httpServer = create_server(options, this.handleRequest.bind(this));
+        this.httpServer =  http.createServer(this.handleRequest.bind(this));
     }
 
     /**
-     * Creates an instance of HttpServer.
+     * Creates an instance of HttpServer.     *
      * @param {FluxEcoConfig} config - The server configuration object.
-     * @param {MiddlewareChain} middlewareChain - The middleware chain to use for processing HTTP requests.
+     * @param {MiddlewareChain} middlewareChain
      * @return FluxEcoHttpServer
      */
     static async new(config, middlewareChain) {

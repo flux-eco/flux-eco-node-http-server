@@ -1,3 +1,4 @@
+import {sendError} from "../handlers/sendError.mjs";
 
 /**
  * Represents a middleware chain for handling HTTP requests.
@@ -27,8 +28,7 @@ class MiddlewareChain {
                 if (next) {
                     next();
                 } else {
-                    res.statusCode = 404;
-                    res.end('Not Found');
+                    sendError(404);
                 }
                 return;
             }

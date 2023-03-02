@@ -12,7 +12,7 @@ class FluxEcoHttpServerConfig {
      * Creates an instance of Config.
      * @param {Object} configObj - The configuration object loaded from a JSON file.
     **/
-    constructor(configObj, actionCallables) {
+    constructor(configObj) {
         this.#server = configObj.endpoints.http.server;
         this.#policies = configObj.endpoints.http.policies;
         this.#static = configObj.endpoints.http.static;
@@ -21,8 +21,7 @@ class FluxEcoHttpServerConfig {
             this.actions[key] = {
                 path: value.path,
                 method: value.method,
-                headers: value.headers || {},
-                actionCallable: actionCallables[value.actionCallable]
+                headers: value.headers || {}
             }
         }
     }

@@ -5,17 +5,24 @@ import url from "node:url";
 
 /** @typedef {import("node:http")} http */
 
-class StaticFileMiddleware {
+export class StaticFileMiddleware {
     /**
-     * @type {string}
+     * @type {object}
      */
-    #staticPath;
+    #staticFiles;
 
     /**
-     * @param {string} staticPath
+     * @param {object} staticFiles
      */
-    constructor(staticPath) {
-        this.#staticPath = staticPath;
+    constructor(staticFiles) {
+        this.#staticFiles = staticFiles;
+    }
+
+    /**
+     * @param {FluxEcoHttpServerConfig} config
+     */
+    static new(config) {
+        return new StaticFileMiddleware(config.staticFiles)
     }
 
     /**
@@ -33,7 +40,7 @@ class StaticFileMiddleware {
             return;
         }
 
-        const filePath = path.join(this.#staticPath, pathname);
+        const filePath = path.join(this.#staticFiles.path, pathname);
 
         try {
             await fs.promises.access(filePath, fs.constants.R_OK);

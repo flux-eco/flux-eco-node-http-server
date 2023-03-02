@@ -4,31 +4,38 @@
   "type": "object",
   "properties": {
     "serverSettings": {
-      "$ref": "#/definitions/serverSettings"
+      "$ref": "#/$defs/serverSettings"
     },
     "policies": {
-      "$ref": "#/definitions/policies"
+      "$ref": "#/$defs/policies"
     },
-    "static": {
-      "$ref": "#/definitions/static"
+    "staticFiles": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ]
     },
-    "middlewares": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/middlewares"
-      }
+    "handlers": {
+      "$ref": "#/$defs/handlers"
     },
     "actions": {
       "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/actions"
+      "patternProperties": {
+        ".+": {
+          "$ref": "#/$defs/action"
+        }
       }
     }
   },
   "required": [
     "server"
   ],
-  "definitions": {
+  "$defs": {
     "serverSettings": {
       "type": "object",
       "properties": {
@@ -46,7 +53,18 @@
     },
     "policies": {
       "type": "object",
+      "patternProperties": {
+        ".+": {
+          "$ref": "#/$defs/policy"
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
       "properties": {
+        "path": {
+          "type": "string"
+        },
         "requiredHeaders": {
           "type": "string"
         },
@@ -56,7 +74,72 @@
         "allowedIps": {
           "type": "string"
         }
+      },
+      "required": [
+        "path"
+      ],
+      "additionalProperties": false
+    },
+    "handlers": {
+      "type": "object",
+      "patternProperties": {
+        ".+": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/apiHandler"
+            },
+            {
+              "$ref": "#/$defs/httpProxyHandler"
+            }
+          ]
+        }
       }
+    },
+    "apiHandler": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "apiHandler"
+        },
+        "filePath": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filePath",
+        "type"
+      ],
+      "additionalProperties": "false"
+    },
+    "httpProxyHandler": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "httpProxyHandler"
+        },
+        "server": {
+          "type": "object",
+          "properties": {
+            "port": {
+              "type": "string"
+            },
+            "host": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "port",
+            "host"
+          ]
+        }
+      },
+      "required": [
+        "server",
+        "type"
+      ],
+      "additionalProperties": "false"
     },
     "middlewares": {
       "type": "string",
@@ -74,9 +157,12 @@
         "StaticFileMiddleware"
       ]
     },
-    "actions": {
+    "action": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string"
+        },
         "path": {
           "type": "string"
         },
@@ -88,33 +174,12 @@
             "PUT",
             "DELETE"
           ]
-        },
-        "policies": {
-          "anyOf": [
-            {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            {
-              "type": "object",
-              "additionalProperties": {}
-            }
-          ]
-        },
-        "handlerType": {
-          "type": "string",
-          "enum": [
-            "callable",
-            "httpRequest"
-            ]
         }
       },
       "required": [
+        "name",
         "path",
-        "method",
-        "handlerType"
+        "method"
       ]
     },
     "static": {

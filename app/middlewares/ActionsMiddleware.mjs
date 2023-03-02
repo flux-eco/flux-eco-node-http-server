@@ -1,38 +1,56 @@
 import {getActionName} from "../handlers/getActionName.mjs";
+import {extractParams} from "../handlers/extractParams.mjs";
 
-class ActionsMiddleware {
+/**
+ * An async function that handles API requests.
+ * @typedef {Function} ApiRequestHandler
+ * @param {string} actionName - The request object.
+ * @param {object} requestParameter
+ * @returns {Object} - The result of the API method.
+ * @throws {Error} - If an unknown action is requested or if parameter validation fails.
+ */
+
+
+export class ActionsMiddleware {
     /**
      * @var {object}
      */
     #actions;
     /**
-     * @var {Object<string, Function>}
+     * @var {ApiRequestHandler}
      */
-    #actionCallables
+    #handleActionCallable
 
     /**
      * @param {object} actions
-     * @param {Object<string, Function>} actionCallables - An object mapping action names to their corresponding callable functions.
+     * @param {ApiRequestHandler} handleActionCallable
      */
-    constructor(actions, actionCallables) {
+    constructor(actions, handleActionCallable) {
         this.#actions = actions;
-        this.#actionCallables = actionCallables;
+        this.#handleActionCallable = handleActionCallable;
     }
 
     /**
-     * @param {FluxEcoHttpServerConfig.actions} actions
-     * @param {Object<string, Function>} actionCallables - An object mapping action names to their corresponding callable functions.
+     * @param {FluxEcoHttpServerConfig} serverConfig
+     * @param {ApiRequestHandler} handleActionCallable
      */
-    static new(actions, actionCallables) {
-        return new ActionsMiddleware(actions, actionCallables)
+    static new(serverConfig, handleActionCallable) {
+        return new ActionsMiddleware(serverConfig.actions, handleActionCallable)
     }
 
 
     handleRequest(request, response, next) {
         const action = this.#actions[getActionName(request)];
         if (action) {
-            const handler = this.#actionCallables[getActionName(request)];
-            handler(request, response);
+            try {
+                // Call API handler function
+                const result =  this.#handleActionCallable(getActionName(request), extractParams(request,action.params));
+                // Return API result to client
+                response.json(result);
+            } catch (err) {
+                // Send error response to client
+                response.status(400).send(err.message);
+            }
         } else {
             next();
         }

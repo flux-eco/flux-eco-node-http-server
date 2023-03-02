@@ -3,21 +3,18 @@ import {requiredHeadersAreSet} from "../handlers/requiredHeadersAreSet.mjs";
 import {isClientIpAddressAllowed} from "../handlers/isClientIpAddressAllowed.mjs";
 import {sendError} from "../handlers/sendError.mjs";
 
-class CheckPoliciesMiddleware {
+export class CheckPoliciesMiddleware {
     /**
      * @type {object}
      */
-    #policiesConfig;
-    #actionsConfig;
+    #policies;
     #handlers;
 
     /**
-     * @param {object} policiesConfig
-     * @param {object} actionsConfig
+     * @param {object} policies
      */
-    constructor(policiesConfig, actionsConfig) {
-        this.#policiesConfig = policiesConfig;
-        this.#actionsConfig = actionsConfig;
+    constructor(policies) {
+        this.#policies = policies;
         this.#handlers = {};
         this.#handlers.requiredHeaders = requiredHeadersAreSet;
         this.#handlers.allowedIps = isClientIpAddressAllowed;
@@ -27,29 +24,24 @@ class CheckPoliciesMiddleware {
      * @param {FluxEcoHttpServerConfig} config
      */
     static new(config) {
-        return new CheckPoliciesMiddleware(config.policies, config.actions)
+        return new CheckPoliciesMiddleware(config.policies)
     }
 
     handleRequest(request, response, next) {
-        const actionConfig = this.#actionsConfig[getActionName(request)];
 
-        if(actionConfig.policies.isArray) {
-            actionConfig.policies.isArray.forEach((policyName) => {
-                const policy = this.#policiesConfig[policyName];
-                const result = this.#handlers[policyName](request, policy)
+        Object.entries(this.#policies).forEach(([policyName, policy]) => {
+            if (isPathInUrl(request.url, policy.path)) {
+                Object.entries(this.#handlers).forEach(([policyRuleName, handler]) => {
+                    if (policy.constructor.hasOwnProperty(policyRuleName)) {
+                        const result = handler(request, policy[policyRuleName]);
+                        if (result === false) {
+                            sendError(401)
+                        }
+                    }
+                })
+            }
+        });
 
-                if(result === false) {
-                    sendError(res, 401)
-                }
-            });
-        }
-
-        /*
-                res.setHeader('Access-Control-Allow-Origin', policy.allowOrigin);
-                res.setHeader('Access-Control-Allow-Headers', policy.allowHeaders);
-                res.setHeader('Access-Control-Allow-Methods', policy.allowMethods);
-                next();
-        */
         next();
     }
 }
