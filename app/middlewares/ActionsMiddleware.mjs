@@ -1,5 +1,6 @@
 import {getActionName} from "../handlers/getActionName.mjs";
 import {extractParams} from "../handlers/extractParams.mjs";
+import {sendError} from "../handlers/sendError.mjs";
 
 /**
  * An async function that handles API requests.
@@ -39,17 +40,21 @@ export class ActionsMiddleware {
     }
 
 
-    handleRequest(request, response, next) {
+    async handleRequest(request, response, next) {
         const action = this.#actions[getActionName(request)];
         if (action) {
             try {
-                // Call API handler function
-                const result =  this.#handleActionCallable(getActionName(request), extractParams(request,action.params));
-                // Return API result to client
-                response.json(result);
+                const result =  await this.#handleActionCallable(getActionName(request), extractParams(request,action.params));
+                if(result) {
+                    response.writeHead(200, {'Content-Type': 'application/json'});
+                    response.write(JSON.stringify(result));
+                    response.end();
+                }
+
             } catch (err) {
+                console.log(err);
                 // Send error response to client
-                response.status(400).send(err.message);
+                sendError(response, 400);
             }
         } else {
             next();

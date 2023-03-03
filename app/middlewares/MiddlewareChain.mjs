@@ -1,4 +1,4 @@
-class MiddlewareChain {
+export class MiddlewareChain {
     /**
      * @private
      * @param middlewares
@@ -12,7 +12,6 @@ class MiddlewareChain {
     }
 
     handleRequest(request, response) {
-        console.log('Received request', request.method, request.url);
         let currentHandlerIndex = -1;
         const next = () => {
             currentHandlerIndex++;

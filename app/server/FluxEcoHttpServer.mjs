@@ -1,3 +1,14 @@
+/**
+ * @typedef {Object} HttpServerConfig
+ * @property {Object} server - Konfiguration für den HTTP-Server
+ * @property {string} server.port - Der Port, auf dem der Server hören soll
+ * @property {string} server.host - Die IP-Adresse oder Hostname, auf dem der Server ausgeführt werden soll
+ * @property {Object.<string, {policy: {path: string, requiredHeaders: string, allowedHeaders: string, allowedIps: string}}>} policies - Konfiguration der Zugriffspolitik
+ * @property {Object.<string, {path: string}>} staticFiles - Konfiguration der statischen Dateien
+ * @property {Object.<string, {action: {name: string, path: string, method: "GET"|"POST"|"PUT"|"DELETE"}}>} actions - Konfiguration der Aktionen
+ */
+
+
 import { createServer as createServerHttp } from "node:http";
 import http from "http";
 
@@ -9,7 +20,7 @@ export class FluxEcoHttpServer {
     constructor(config, middlewareChain) {
         /**
          * The server configuration object.
-         * @type {FluxEcoConfig}
+         * @type {HttpServerConfig}
          */
         this.config = config;
 
@@ -28,7 +39,7 @@ export class FluxEcoHttpServer {
 
     /**
      * Creates an instance of HttpServer.     *
-     * @param {FluxEcoConfig} config - The server configuration object.
+     * @param {HttpServerConfig} config - The server configuration object.
      * @param {MiddlewareChain} middlewareChain
      * @return FluxEcoHttpServer
      */
@@ -50,7 +61,9 @@ export class FluxEcoHttpServer {
      * @returns {void}
      */
     start() {
-        const {port, host} = this.config;
+        console.log(this.config)
+        const port = this.config.server.port;
+        const host = this.config.server.host;
 
         // Start the server listening on the specified port and host
         this.httpServer.listen(port, host, () => {

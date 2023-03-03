@@ -3,40 +3,7 @@
   "$id": "https://fluxlabs.ch/flux-eco/flux-eco-http-server.json",
   "type": "object",
   "properties": {
-    "serverSettings": {
-      "$ref": "#/$defs/serverSettings"
-    },
-    "policies": {
-      "$ref": "#/$defs/policies"
-    },
-    "staticFiles": {
-      "type": "object",
-      "properties": {
-        "path": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "path"
-      ]
-    },
-    "handlers": {
-      "$ref": "#/$defs/handlers"
-    },
-    "actions": {
-      "type": "object",
-      "patternProperties": {
-        ".+": {
-          "$ref": "#/$defs/action"
-        }
-      }
-    }
-  },
-  "required": [
-    "server"
-  ],
-  "$defs": {
-    "serverSettings": {
+    "server": {
       "type": "object",
       "properties": {
         "port": {
@@ -52,184 +19,84 @@
       ]
     },
     "policies": {
-      "type": "object",
+      "type": [
+        "object",
+        "null"
+      ],
       "patternProperties": {
         ".+": {
-          "$ref": "#/$defs/policy"
+          "policy": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "requiredHeaders": {
+                "type": "string"
+              },
+              "allowedHeaders": {
+                "type": "string"
+              },
+              "allowedIps": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "additionalProperties": false
+          }
         }
       }
     },
-    "policy": {
-      "type": "object",
+    "staticFiles": {
+      "type": [
+        "object",
+        "null"
+      ],
       "properties": {
         "path": {
-          "type": "string"
-        },
-        "requiredHeaders": {
-          "type": "string"
-        },
-        "allowedHeaders": {
-          "type": "string"
-        },
-        "allowedIps": {
           "type": "string"
         }
       },
       "required": [
         "path"
-      ],
-      "additionalProperties": false
+      ]
     },
-    "handlers": {
+    "actions": {
       "type": "object",
       "patternProperties": {
         ".+": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/apiHandler"
+          "action": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "method": {
+                "type": "string",
+                "enum": [
+                  "GET",
+                  "POST",
+                  "PUT",
+                  "DELETE"
+                ]
+              }
             },
-            {
-              "$ref": "#/$defs/httpProxyHandler"
-            }
-          ]
+            "required": [
+              "name",
+              "path",
+              "method"
+            ]
+          }
         }
       }
-    },
-    "apiHandler": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "type": "string",
-          "const": "apiHandler"
-        },
-        "filePath": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "filePath",
-        "type"
-      ],
-      "additionalProperties": "false"
-    },
-    "httpProxyHandler": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "type": "string",
-          "const": "httpProxyHandler"
-        },
-        "server": {
-          "type": "object",
-          "properties": {
-            "port": {
-              "type": "string"
-            },
-            "host": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "port",
-            "host"
-          ]
-        }
-      },
-      "required": [
-        "server",
-        "type"
-      ],
-      "additionalProperties": "false"
-    },
-    "middlewares": {
-      "type": "string",
-      "enum": [
-        "ActionMiddleware",
-        "BackendProxyMiddleware",
-        "ConfigMiddleware",
-        "ErrorHandlingMiddleware",
-        "LoggerMiddleware",
-        "LoggingMiddleware",
-        "CheckPoliciesMiddleware",
-        "RequestContentLoggerMiddleware",
-        "ResponseContentLoggerMiddleware",
-        "ServerMiddleware",
-        "StaticFileMiddleware"
-      ]
-    },
-    "action": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "path": {
-          "type": "string"
-        },
-        "method": {
-          "type": "string",
-          "enum": [
-            "GET",
-            "POST",
-            "PUT",
-            "DELETE"
-          ]
-        }
-      },
-      "required": [
-        "name",
-        "path",
-        "method"
-      ]
-    },
-    "static": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "method": {
-          "type": "string",
-          "enum": [
-            "GET",
-            "POST",
-            "PUT",
-            "DELETE"
-          ]
-        },
-        "path": {
-          "type": "string"
-        },
-        "response": {
-          "type": "object",
-          "properties": {
-            "description": {
-              "type": "string"
-            },
-            "type": {
-              "type": "string",
-              "enum": [
-                "string",
-                "number",
-                "object",
-                "array"
-              ]
-            }
-          },
-          "required": [
-            "type"
-          ]
-        }
-      },
-      "required": [
-        "name",
-        "method",
-        "path",
-        "response"
-      ]
     }
-  }
+  },
+  "required": [
+    "server","policies","staticFiles","actions"
+  ]
 }

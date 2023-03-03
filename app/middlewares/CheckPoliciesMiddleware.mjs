@@ -2,6 +2,7 @@ import {getActionName} from "../handlers/getActionName.mjs";
 import {requiredHeadersAreSet} from "../handlers/requiredHeadersAreSet.mjs";
 import {isClientIpAddressAllowed} from "../handlers/isClientIpAddressAllowed.mjs";
 import {sendError} from "../handlers/sendError.mjs";
+import {isPathInUrl} from "../handlers/isPathInUrl.mjs";
 
 export class CheckPoliciesMiddleware {
     /**
@@ -28,20 +29,22 @@ export class CheckPoliciesMiddleware {
     }
 
     handleRequest(request, response, next) {
-
-        Object.entries(this.#policies).forEach(([policyName, policy]) => {
-            if (isPathInUrl(request.url, policy.path)) {
-                Object.entries(this.#handlers).forEach(([policyRuleName, handler]) => {
-                    if (policy.constructor.hasOwnProperty(policyRuleName)) {
+        try {
+            Object.entries(this.#policies).forEach(([policyName, policy]) => {
+                if (isPathInUrl(request.url, policy.path)) {
+                    Object.entries(this.#handlers).forEach(([policyRuleName, handler]) => {
                         const result = handler(request, policy[policyRuleName]);
                         if (result === false) {
-                            sendError(401)
+                            sendError(response, 401)
+                            return;
                         }
-                    }
-                })
-            }
-        });
-
-        next();
+                    })
+                }
+            });
+            next();
+        } catch (error) {
+            sendError(response, 401)
+            return;
+        }
     }
 }

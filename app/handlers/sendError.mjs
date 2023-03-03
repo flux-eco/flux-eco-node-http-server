@@ -36,11 +36,11 @@ const errorHandlers = {
     },
 };
 
-export const sendError = (res, code) => {
+export const sendError = (response, code) => {
     const errorHandler = errorHandlers[code];
     if (errorHandler) {
-        errorHandler.send(res);
+        errorHandler.send(response);
     } else {
-        errorHandler[500].send(res);
+        errorHandler[500].send(response);
     }
 };
