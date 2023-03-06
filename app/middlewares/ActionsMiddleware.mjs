@@ -1,4 +1,3 @@
-import {getActionName} from "../handlers/getActionName.mjs";
 import {extractParams} from "../handlers/extractParams.mjs";
 import {sendError} from "../handlers/sendError.mjs";
 
@@ -16,41 +15,78 @@ export class ActionsMiddleware {
     /**
      * @var {object}
      */
-    #actions;
+    #apiRoutes;
     /**
-     * @var {ApiRequestHandler}
+     * @var {Object}
      */
-    #handleActionCallable
+    #api
 
     /**
-     * @param {object} actions
-     * @param {ApiRequestHandler} handleActionCallable
+     * @param {object} apiRoutes
+     * @param {Object} api
      */
-    constructor(actions, handleActionCallable) {
-        this.#actions = actions;
-        this.#handleActionCallable = handleActionCallable;
+    constructor(apiRoutes, api) {
+        this.#apiRoutes = apiRoutes;
+        this.#api = api;
     }
 
     /**
      * @param {FluxEcoHttpServerConfig} serverConfig
-     * @param {ApiRequestHandler} handleActionCallable
+     * @param {Object} api
      */
-    static new(serverConfig, handleActionCallable) {
-        return new ActionsMiddleware(serverConfig.actions, handleActionCallable)
+    static new(serverConfig, api) {
+        return new ActionsMiddleware(serverConfig.routes.api, api)
     }
 
-
     async handleRequest(request, response, next) {
-        const action = this.#actions[getActionName(request)];
+        let action = this.#apiRoutes[request.url];
+
+        let parameterValues = [];
+
+        if (action === undefined) {
+            for (const [route, routeConfig] of Object.entries(this.#apiRoutes)) {
+                console.log(route);
+                const parameterNames = routeConfig.parameterNames;
+                const parameterCount = parameterNames.length;
+
+                const url = request.url;
+                const urlParts = url.split("/");
+
+                if (urlParts.length === parameterCount + 3) {
+                    let endsWithMatch = true;
+
+                    for (let i = 0; i < parameterCount; i++) {
+                        parameterValues.push(urlParts[i + 2]);
+                    }
+
+                    const endsWith = routeConfig.actionName;
+
+                    if (!url.endsWith(endsWith)) {
+                        endsWithMatch = false;
+                    }
+
+                    if (endsWithMatch) {
+                        action = routeConfig;
+                        break;
+                    }
+                }
+            }
+        }
+
         if (action) {
             try {
-                const result =  await this.#handleActionCallable(getActionName(request), extractParams(request,action.params));
-                if(result) {
+                let result ={};
+                if(action.actionType === "requestHandler") {
+                    result = await this.#api[action.actionName](request.url, request);
+                } else {
+                    result = await this.#api[action.actionName](...parameterValues);
+                }
+                if (result) {
                     response.writeHead(200, {'Content-Type': 'application/json'});
                     response.write(JSON.stringify(result));
                     response.end();
+                    return;
                 }
-
             } catch (err) {
                 console.log(err);
                 // Send error response to client

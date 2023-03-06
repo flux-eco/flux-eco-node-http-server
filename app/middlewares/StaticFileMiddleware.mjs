@@ -3,27 +3,31 @@ import path from "node:path";
 import stream from "node:stream";
 import url from "node:url";
 import {isPathInUrl} from "../handlers/isPathInUrl.mjs";
+import {sendError} from "../handlers/sendError.mjs";
 
 /** @typedef {import("node:http")} http */
 
 export class StaticFileMiddleware {
     /**
-     * @type {object}
+     * @type {string}
      */
-    #staticFiles;
+    #staticFilesPath;
 
     /**
-     * @param {object} staticFiles
+     * @type {Object.<string,FluxEcoBindingHttp.HttpStaticRoute>}
      */
-    constructor(staticFiles) {
-        this.#staticFiles = staticFiles;
+    #staticRoutes;
+
+    constructor(staticFilesPath, staticRoutes) {
+        this.#staticFilesPath = staticFilesPath;
+        this.#staticRoutes = staticRoutes;
     }
 
     /**
      * @param {FluxEcoHttpServerConfig} config
      */
     static new(config) {
-        return new StaticFileMiddleware(config.staticFiles)
+        return new StaticFileMiddleware(config.staticFilesPath, config.routes.static)
     }
 
     /**
@@ -35,24 +39,40 @@ export class StaticFileMiddleware {
     async handleRequest(request, response, next) {
         const { pathname } = url.parse(request.url);
 
+
         if (pathname.includes("..") || pathname.includes("//") || pathname.includes("\\")) {
-            console.error(`Invalid path name: ${pathname}`);
+            sendError(response, 403)
+            return;
+        }
+
+        if(isPathInUrl(pathname, this.#staticFilesPath) === false) {
             next();
             return;
         }
 
-        if(isPathInUrl(request.url, this.#staticFiles.path) === false) {
+        const filePath = path.join(process.cwd(), pathname);
+
+        let routeConfig = this.#staticRoutes[path.join(this.#staticFilesPath,pathname)];
+
+        if(routeConfig === undefined) {
+            for (const route in this.#staticRoutes) {
+                const regex = new RegExp(`^/public${route.replace(/\*\*/g, '.*')}$`);
+                if (regex.test(pathname)) {
+                    routeConfig = this.#staticRoutes[route];
+                }
+            }
+        }
+        if(routeConfig === undefined) {
             next();
             return;
         }
 
-        const filePath = path.join(this.#staticFiles.path, pathname);
+        response.setHeader('Content-Type', routeConfig.contentType);
 
         try {
             await fs.promises.access(filePath, fs.constants.R_OK);
         } catch (err) {
-            console.error(`Error accessing file: ${filePath}`, err);
-            next();
+            sendError(response, 403)
             return;
         }
 

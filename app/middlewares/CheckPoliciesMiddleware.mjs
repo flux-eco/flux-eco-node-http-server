@@ -22,13 +22,18 @@ export class CheckPoliciesMiddleware {
     }
 
     /**
-     * @param {FluxEcoHttpServerConfig} config
+     * @param {HttpServerConfig} config
      */
     static new(config) {
         return new CheckPoliciesMiddleware(config.policies)
     }
 
     handleRequest(request, response, next) {
+        if(this.#policies === null) {
+            next();
+            return;
+        }
+
         try {
             Object.entries(this.#policies).forEach(([policyName, policy]) => {
                 if (isPathInUrl(request.url, policy.path)) {
