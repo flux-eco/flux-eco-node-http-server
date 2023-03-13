@@ -1,3 +1,5 @@
+import {sendError} from "../handlers/sendError.mjs";
+
 export class MiddlewareChain {
     /**
      * @private
@@ -16,16 +18,18 @@ export class MiddlewareChain {
         const next = () => {
             currentHandlerIndex++;
             if (currentHandlerIndex >= this.middlewares.length) {
-                this.sendResponse(response, 404, 'Not Found');
+                if (!response.headersSent) {
+                    sendError(response, 404);
+                };
                 return;
             }
-            this.middlewares[currentHandlerIndex].handleRequest(request, response, next.bind(this));
+            return this.middlewares[currentHandlerIndex].handleRequest(request, response, next.bind(this));
         };
-        next();
+        return next();
     }
 
-    sendResponse(response, status, message) {
-        response.writeHead(status, {'Content-Type': 'text/plain'});
-        response.end(message);
+    #sendResponse(response, status, message) {
+        //response.writeHead(status, {'Content-Type': 'text/plain'});
+        //response.end(message);
     }
 }

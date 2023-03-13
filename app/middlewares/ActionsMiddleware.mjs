@@ -45,12 +45,20 @@ export class ActionsMiddleware {
 
         if (action === undefined) {
             for (const [route, routeConfig] of Object.entries(this.#apiRoutes)) {
-                console.log(route);
+                const url = request.url;
+                const urlParts = url.split("/");
+
+                if(routeConfig.hasOwnProperty("parameterNames") === false ) {
+                    const actionName = urlParts[urlParts.length - 1];
+                    if(actionName === routeConfig.actionName) {
+                        action = routeConfig;
+                        break;
+                    }
+                    continue;
+                }
                 const parameterNames = routeConfig.parameterNames;
                 const parameterCount = parameterNames.length;
 
-                const url = request.url;
-                const urlParts = url.split("/");
 
                 if (urlParts.length === parameterCount + 3) {
                     let endsWithMatch = true;
@@ -93,7 +101,7 @@ export class ActionsMiddleware {
                 sendError(response, 400);
             }
         } else {
-            next();
+           return;
         }
     }
 }

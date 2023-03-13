@@ -22,7 +22,7 @@ export class CheckPoliciesMiddleware {
     }
 
     /**
-     * @param {HttpServerConfig} config
+     * @param {FluxEcoHttpServerConfig} config
      */
     static new(config) {
         return new CheckPoliciesMiddleware(config.policies)

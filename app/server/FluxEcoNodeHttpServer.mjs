@@ -3,6 +3,7 @@ import {MiddlewareChain} from "../middlewares/MiddlewareChain.mjs";
 import {CheckPoliciesMiddleware} from "../middlewares/CheckPoliciesMiddleware.mjs";
 import {ActionsMiddleware} from "../middlewares/ActionsMiddleware.mjs";
 import {StaticFileMiddleware} from "../middlewares/StaticFileMiddleware.mjs";
+import {sendError} from "../handlers/sendError.mjs";
 
 /**
  * Represents the HTTP server.
@@ -50,11 +51,11 @@ export class FluxEcoNodeHttpServer {
 
     /**
      * Handles an incoming HTTP request.
-     * @param {http.IncomingMessage} req - The incoming HTTP request object.
-     * @param {http.ServerResponse} res - The HTTP response object to send the response through.
+     * @param {http.IncomingMessage} request - The incoming HTTP request object.
+     * @param {http.ServerResponse} response - The HTTP response object to send the response through.
      */
-    handleRequest(req, res) {
-        this.middlewareChain.handleRequest(req, res);
+    async handleRequest(request, response) {
+        await this.middlewareChain.handleRequest(request, response);
     }
 
     /**
