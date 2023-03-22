@@ -1,4 +1,3 @@
-import {extractParams} from "../handlers/extractParams.mjs";
 import {sendError} from "../handlers/sendError.mjs";
 
 /**
@@ -9,8 +8,6 @@ import {sendError} from "../handlers/sendError.mjs";
  * @returns {Object} - The result of the API method.
  * @throws {Error} - If an unknown action is requested or if parameter validation fails.
  */
-
-
 export class ActionsMiddleware {
     /**
      * @var {object}
@@ -21,13 +18,19 @@ export class ActionsMiddleware {
      */
     #api
 
+    #apiActions
+
+    #actions;
+
     /**
      * @param {object} apiRoutes
+     * @param actions
      * @param {Object} api
      */
-    constructor(apiRoutes, api) {
+    constructor(apiRoutes, actions, api) {
         this.#apiRoutes = apiRoutes;
         this.#api = api;
+        this.#actions = actions;
     }
 
     /**
@@ -35,73 +38,51 @@ export class ActionsMiddleware {
      * @param {Object} api
      */
     static new(serverConfig, api) {
-        return new ActionsMiddleware(serverConfig.routes.api, api)
+        return new ActionsMiddleware(serverConfig.routes.api, serverConfig.actions, api)
     }
 
     async handleRequest(request, response, next) {
-        let action = this.#apiRoutes[request.url];
-
-        let parameterValues = [];
-
-        if (action === undefined) {
-            for (const [route, routeConfig] of Object.entries(this.#apiRoutes)) {
-                const url = request.url;
-                const urlParts = url.split("/");
-
-                if(routeConfig.hasOwnProperty("parameterNames") === false ) {
-                    const actionName = urlParts[urlParts.length - 1];
-                    if(actionName === routeConfig.actionName) {
-                        action = routeConfig;
-                        break;
-                    }
-                    continue;
-                }
-                const parameterNames = routeConfig.parameterNames;
-                const parameterCount = parameterNames.length;
-
-
-                if (urlParts.length === parameterCount + 3) {
-                    let endsWithMatch = true;
-
-                    for (let i = 0; i < parameterCount; i++) {
-                        parameterValues.push(urlParts[i + 2]);
-                    }
-
-                    const endsWith = routeConfig.actionName;
-
-                    if (!url.endsWith(endsWith)) {
-                        endsWithMatch = false;
-                    }
-
-                    if (endsWithMatch) {
-                        action = routeConfig;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (action) {
+        const handleAction = async (actionType, actionName, actionParameters) => {
             try {
-                let result ={};
-                if(action.actionType === "requestHandler") {
-                    result = await this.#api[action.actionName](request.url, request);
+                let result = {};
+                if (actionType === "requestHandler") {
+                    result = await this.#api[actionName](request.url, request);
                 } else {
-                    result = await this.#api[action.actionName](...parameterValues);
+                    result = await this.#api[actionName](actionParameters);
                 }
+
                 if (result) {
                     response.writeHead(200, {'Content-Type': 'application/json'});
                     response.write(JSON.stringify(result));
                     response.end();
                     return;
                 }
+
             } catch (err) {
                 console.log(err);
                 // Send error response to client
                 sendError(response, 400);
             }
-        } else {
-           return;
         }
+
+        this.#actions.forEach(actionDefinition => {
+            if (request.url.includes(actionDefinition.actionName)) {
+                const action = actionDefinition;
+                const handleActionParameters = {};
+                const parameters = action.parameters;
+                Object.entries(parameters).forEach(([parameterName, parameterSchema]) => {
+                    if (request.url.includes(parameterName)) {
+                        const url = request.url;
+                        const urlParts = url.split("/");
+                        urlParts.forEach((partValue, partPosition) => {
+                            if (partValue === parameterName) {
+                                handleActionParameters[parameterName] = urlParts[(partPosition + 1)];
+                            }
+                        });
+                    }
+                })
+                handleAction("", action.actionName, handleActionParameters);
+            }
+        });
     }
 }

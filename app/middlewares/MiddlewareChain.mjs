@@ -20,16 +20,12 @@ export class MiddlewareChain {
             if (currentHandlerIndex >= this.middlewares.length) {
                 if (!response.headersSent) {
                     sendError(response, 404);
-                };
+                }
                 return;
             }
+
             return this.middlewares[currentHandlerIndex].handleRequest(request, response, next.bind(this));
         };
         return next();
-    }
-
-    #sendResponse(response, status, message) {
-        //response.writeHead(status, {'Content-Type': 'text/plain'});
-        //response.end(message);
     }
 }

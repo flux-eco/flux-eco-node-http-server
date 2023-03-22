@@ -1,5 +1,3 @@
-import "../../../flux-eco-biotope/types/flux-eco-http-types.mjs"
-
 /**
  * @namespace FluxEcoNodeHttpServer
  */

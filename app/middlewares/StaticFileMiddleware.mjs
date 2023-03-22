@@ -1,19 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
-import stream from "node:stream";
 import {isPathInUrl} from "../handlers/isPathInUrl.mjs";
 import {sendError} from "../handlers/sendError.mjs";
 
 /** @typedef {import("node:http")} http */
-
 export class StaticFileMiddleware {
     /**
-     * @property {Object.<string, Object.<string, FluxEcoBindingHttp.HttpStaticRouteConfiguration>>} routes.static - Configuration for static routes.
+     * @property {Object.<string, Object.<string, FluxEcoBindingHttp.HttpStaticRoute>>} routes.static - Configuration for static routes.
      **/
     #staticRelativeRootPathsConfigurations;
 
     /**
-     * @property {Object.<string, Object.<string, FluxEcoBindingHttp.HttpStaticRouteConfiguration>>} routes.static - Configuration for static routes.
+     * @property {Object.<string, Object.<string, FluxEcoBindingHttp.HttpStaticRoute>>} routes.static - Configuration for static routes.
      */
     constructor(staticRelativeRootPathsConfigurations) {
         this.#staticRelativeRootPathsConfigurations = staticRelativeRootPathsConfigurations;
@@ -52,7 +50,6 @@ export class StaticFileMiddleware {
                 if (!response.headersSent) {
                     this.#handleResponse(response, headers, fileContent);
                 }
-                next();
             }
         });
         const onError = (number) => {
@@ -72,7 +69,6 @@ export class StaticFileMiddleware {
 
             //the file system path of the requested file
             const fileSystemFilePath = path.join(process.cwd(), requestedPathWithoutQueryParams);
-
             /**
              * @var {HttpStaticRouteConfiguration} staticRoutePathConfiguration
              */
@@ -80,18 +76,17 @@ export class StaticFileMiddleware {
                 //current requested file path matches the static route path
                 if (fileSystemFilePath === staticRoutePath) {
                     await this.#readFile(fileSystemFilePath, onRead(staticRoutePathConfiguration.contentType), onError);
-                    next();
+                    return;
                 }
                 const regex = new RegExp(`^${rootRelativeDirectoryName}${staticRoutePath.replace(/\*\*/g, '.*')}$`);
                 //check regex
                 if (regex.test(requestedPathWithoutQueryParams)) {
                     await this.#readFile(fileSystemFilePath, onRead(staticRoutePathConfiguration.contentType), onError);
-                    next();
+                    return;
                 }
             }
         }
         next();
-        return;
     }
 
 
@@ -109,7 +104,6 @@ export class StaticFileMiddleware {
             console.log(err);
             onError(403)
         }
-
         try {
             const fileContent = await fs.promises.readFile(fileSystemFilePath);
             const contentAsString = fileContent.toString();
@@ -118,9 +112,7 @@ export class StaticFileMiddleware {
             console.error(`Error reading file: ${fileSystemFilePath}`, err);
             onError(500)
         }
-
     }
-
 
     /**
      *

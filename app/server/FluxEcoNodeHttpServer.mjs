@@ -3,7 +3,6 @@ import {MiddlewareChain} from "../middlewares/MiddlewareChain.mjs";
 import {CheckPoliciesMiddleware} from "../middlewares/CheckPoliciesMiddleware.mjs";
 import {ActionsMiddleware} from "../middlewares/ActionsMiddleware.mjs";
 import {StaticFileMiddleware} from "../middlewares/StaticFileMiddleware.mjs";
-import {sendError} from "../handlers/sendError.mjs";
 
 /**
  * Represents the HTTP server.
@@ -88,9 +87,7 @@ export class FluxEcoNodeHttpServer {
         if (typeof object !== 'object') {
             return object;
         }
-
         const resolved = Array.isArray(object) ? [] : {};
-
         for (const [key, value] of Object.entries(object)) {
             if (typeof value === 'string' && value.startsWith('$')) {
                 const envVar = value.slice(1);
@@ -100,7 +97,6 @@ export class FluxEcoNodeHttpServer {
                 resolved[key] = this.resolveEnvVariables(value);
             }
         }
-
         return resolved;
     }
 }
