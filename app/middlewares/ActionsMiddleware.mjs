@@ -45,11 +45,7 @@ export class ActionsMiddleware {
         const handleAction = async (actionType, actionName, actionParameters) => {
             try {
                 let result = {};
-                if (actionType === "requestHandler") {
-                    result = await this.#api[actionName](request.url, request);
-                } else {
-                    result = await this.#api[actionName](actionParameters);
-                }
+                result = await this.#api[actionName](actionParameters);
 
                 if (result) {
                     response.writeHead(200, {'Content-Type': 'application/json'});
