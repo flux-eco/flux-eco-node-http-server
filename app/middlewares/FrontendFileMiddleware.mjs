@@ -4,24 +4,24 @@ import {isPathInUrl} from "../handlers/isPathInUrl.mjs";
 import {sendError} from "../handlers/sendError.mjs";
 
 /** @typedef {import("node:http")} http */
-export class StaticFileMiddleware {
+export class FrontendFileMiddleware {
     /**
      * @property {Object.<string, Object.<string, FluxEcoBindingHttp.HttpStaticRoute>>} routes.static - Configuration for static routes.
      **/
-    #staticRelativeRootPathsConfigurations;
+    #filePaths;
 
     /**
      * @property {Object.<string, Object.<string, FluxEcoBindingHttp.HttpStaticRoute>>} routes.static - Configuration for static routes.
      */
-    constructor(staticRelativeRootPathsConfigurations) {
-        this.#staticRelativeRootPathsConfigurations = staticRelativeRootPathsConfigurations;
+    constructor(filePaths) {
+        this.#filePaths = filePaths;
     }
 
     /**
      * @param {FluxEcoHttpServerConfig} config
      */
     static new(config) {
-        return new StaticFileMiddleware(config.routes.static)
+        return new FrontendFileMiddleware(config.frontend.filePaths)
     }
 
     /**
@@ -34,7 +34,7 @@ export class StaticFileMiddleware {
 
         let requestedPath = request.url;
         if (requestedPath === "/favicon.ico") {
-            requestedPath = "/static/favicon.ico"; //todo
+            requestedPath = "/frontend/favicon.ico"; //todo
         }
 
         if (requestedPath.includes("..") || requestedPath.includes("//") || requestedPath.includes("\\")) {
@@ -58,7 +58,7 @@ export class StaticFileMiddleware {
             }
         }
 
-        for await (const [rootRelativeDirectoryName, staticRoutePathConfigurations] of Object.entries(this.#staticRelativeRootPathsConfigurations)) {
+        for await (const [rootRelativeDirectoryName, staticRoutePathConfigurations] of Object.entries(this.#filePaths)) {
             //rootRelativeDirectoryName is not within the current requestedPath
             if (isPathInUrl(requestedPath, rootRelativeDirectoryName) === false) {
                 continue;
@@ -68,20 +68,22 @@ export class StaticFileMiddleware {
             const requestedPathWithoutQueryParams = (questionMarkIndex === -1) ? requestedPath : requestedPath.substr(0, questionMarkIndex);
 
             //the file system path of the requested file
-            const fileSystemFilePath = path.join(process.cwd(), requestedPathWithoutQueryParams);
+            const fileSystemFilePath = path.join(process.cwd(),"frontend", requestedPathWithoutQueryParams);
+
+            //todo if...
+            await this.#readFile(fileSystemFilePath, onRead(staticRoutePathConfigurations.contentType), onError);
+            return;
+
+
             /**
              * @var {HttpStaticRouteConfiguration} staticRoutePathConfiguration
              */
             for await (const [staticRoutePath, staticRoutePathConfiguration] of Object.entries(staticRoutePathConfigurations)) {
-                //current requested file path matches the static route path
-                if (fileSystemFilePath === staticRoutePath) {
-                    await this.#readFile(fileSystemFilePath, onRead(staticRoutePathConfiguration.contentType), onError);
-                    return;
-                }
-                const regex = new RegExp(`^${rootRelativeDirectoryName}${staticRoutePath.replace(/\*\*/g, '.*')}$`);
+
+                const regex = new RegExp(`^${rootRelativeDirectoryName}${staticRoutePath.replace(/\*\*/g,  '.*')}$`);
                 //check regex
                 if (regex.test(requestedPathWithoutQueryParams)) {
-                    await this.#readFile(fileSystemFilePath, onRead(staticRoutePathConfiguration.contentType), onError);
+                   await this.#readFile(fileSystemFilePath, onRead(staticRoutePathConfiguration.contentType), onError);
                     return;
                 }
             }

@@ -8,11 +8,7 @@ import {sendError} from "../handlers/sendError.mjs";
  * @returns {Object} - The result of the API method.
  * @throws {Error} - If an unknown action is requested or if parameter validation fails.
  */
-export class ActionsMiddleware {
-    /**
-     * @var {object}
-     */
-    #apiRoutes;
+export class BackendActionsMiddleware {
     /**
      * @var {Object}
      */
@@ -23,12 +19,10 @@ export class ActionsMiddleware {
     #actions;
 
     /**
-     * @param {object} apiRoutes
      * @param actions
      * @param {Object} api
      */
-    constructor(apiRoutes, actions, api) {
-        this.#apiRoutes = apiRoutes;
+    constructor(actions, api) {
         this.#api = api;
         this.#actions = actions;
     }
@@ -38,7 +32,7 @@ export class ActionsMiddleware {
      * @param {Object} api
      */
     static new(serverConfig, api) {
-        return new ActionsMiddleware(serverConfig.routes.api, serverConfig.actions, api)
+        return new BackendActionsMiddleware(serverConfig.backend.actions, api)
     }
 
     async handleRequest(request, response, next) {
@@ -61,24 +55,28 @@ export class ActionsMiddleware {
             }
         }
 
-        this.#actions.forEach(actionDefinition => {
-            if (request.url.includes(actionDefinition.actionName)) {
-                const action = actionDefinition;
-                const handleActionParameters = {};
-                const parameters = action.parameters;
-                Object.entries(parameters).forEach(([parameterName, parameterSchema]) => {
-                    if (request.url.includes(parameterName)) {
-                        const url = request.url;
-                        const urlParts = url.split("/");
-                        urlParts.forEach((partValue, partPosition) => {
-                            if (partValue === parameterName) {
-                                handleActionParameters[parameterName] = urlParts[(partPosition + 1)];
-                            }
-                        });
-                    }
-                })
-                handleAction("", action.actionName, handleActionParameters);
+        for (const actionDefinitionKey in this.#actions) {
+            if (this.#actions.hasOwnProperty(actionDefinitionKey)) {
+                const actionDefinition = this.#actions[actionDefinitionKey];
+                console.log(actionDefinition);
+                if (request.url.includes(actionDefinition.actionName)) {
+                    const action = actionDefinition;
+                    const handleActionParameters = {};
+                    const parameters = action.parameters;
+                    Object.entries(parameters).forEach(([parameterName, parameterSchema]) => {
+                        if (request.url.includes(parameterName)) {
+                            const url = request.url;
+                            const urlParts = url.split("/");
+                            urlParts.forEach((partValue, partPosition) => {
+                                if (partValue === parameterName) {
+                                    handleActionParameters[parameterName] = urlParts[(partPosition + 1)];
+                                }
+                            });
+                        }
+                    });
+                    await handleAction("", action.actionName, handleActionParameters);
+                }
             }
-        });
+        }
     }
 }
