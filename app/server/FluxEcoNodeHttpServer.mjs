@@ -1,4 +1,6 @@
-import http from "http";
+import http from "node:http";
+import fs from "node:fs";
+import path from "node:path";
 import {MiddlewareChain} from "../middlewares/MiddlewareChain.mjs";
 import {CheckPoliciesMiddleware} from "../middlewares/CheckPoliciesMiddleware.mjs";
 import {BackendActionsMiddleware} from "../middlewares/BackendActionsMiddleware.mjs";
@@ -14,8 +16,7 @@ export class FluxEcoNodeHttpServer {
          * The server configuration object.
          * @type {HttpServerConfig}
          */
-        this.config = this.resolveEnvVariables(config); //todo resolve refs
-
+        this.config = this.resolveEnvVariables(config);
 
         /**
          * The middleware chain to use for processing HTTP requests.
@@ -100,4 +101,6 @@ export class FluxEcoNodeHttpServer {
         }
         return resolved;
     }
+
+
 }
