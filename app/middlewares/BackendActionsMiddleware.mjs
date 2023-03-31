@@ -36,7 +36,7 @@ export class BackendActionsMiddleware {
     }
 
     async handleRequest(request, response, next) {
-        const handleAction = async (actionType, actionName, actionParameters) => {
+        const handleAction = async (actionName, actionParameters) => {
             try {
                 let result = {};
                 result = await this.#api[actionName](actionParameters);
@@ -55,11 +55,12 @@ export class BackendActionsMiddleware {
             }
         }
 
-        for (const actionDefinitionKey in this.#actions) {
-            if (this.#actions.hasOwnProperty(actionDefinitionKey)) {
-                const actionDefinition = this.#actions[actionDefinitionKey];
-                console.log(actionDefinition);
-                if (request.url.includes(actionDefinition.actionName)) {
+        for (const actionName in this.#actions) {
+            if (this.#actions.hasOwnProperty(actionName)) {
+                const actionDefinition = this.#actions[actionName];
+
+                if (request.url.includes(actionName)) {
+                    console.log(actionDefinition);
                     const action = actionDefinition;
                     const handleActionParameters = {};
                     const parameters = action.parameters;
@@ -74,7 +75,7 @@ export class BackendActionsMiddleware {
                             });
                         }
                     });
-                    await handleAction("", action.actionName, handleActionParameters);
+                    await handleAction(actionName, handleActionParameters);
                 }
             }
         }
