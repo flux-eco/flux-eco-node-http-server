@@ -14,14 +14,15 @@ export class FrontendFileMiddleware {
      * @property {Object.<string, Object.<string, FluxEcoBindingHttp.HttpStaticRoute>>} routes.static - Configuration for static routes.
      */
     constructor(filePaths) {
+        console.log(filePaths);
         this.#filePaths = filePaths;
     }
 
     /**
-     * @param {FluxEcoHttpServerConfig} config
+     * @param {FluxEcoNodeHttpServerConfig} config
      */
     static new(config) {
-        return new FrontendFileMiddleware(config.frontend.filePaths)
+        return new FrontendFileMiddleware(config.schemas.filePathsSchema)
     }
 
     /**
@@ -33,9 +34,11 @@ export class FrontendFileMiddleware {
     async handleRequest(request, response, next) {
 
         let requestedPath = request.url;
+
         if (requestedPath === "/favicon.ico") {
-            requestedPath = "/frontend/favicon.ico"; //todo
+            // this.#handleResponse(response, headers, "");
         }
+
 
         if (requestedPath.includes("..") || requestedPath.includes("//") || requestedPath.includes("\\")) {
             sendError(response, 403)
@@ -68,11 +71,10 @@ export class FrontendFileMiddleware {
             const requestedPathWithoutQueryParams = (questionMarkIndex === -1) ? requestedPath : requestedPath.substr(0, questionMarkIndex);
 
             //the file system path of the requested file
-            const fileSystemFilePath = path.join(process.cwd(),"frontend", requestedPathWithoutQueryParams);
+            const fileSystemFilePath = path.join(process.cwd(), "dom-handler/public", requestedPathWithoutQueryParams);
 
             //todo if...
             await this.#readFile(fileSystemFilePath, onRead(staticRoutePathConfigurations.contentType), onError);
-            return;
 
 
             /**
@@ -83,7 +85,7 @@ export class FrontendFileMiddleware {
                 const regex = new RegExp(`^${rootRelativeDirectoryName}${staticRoutePath.replace(/\*\*/g,  '.*')}$`);
                 //check regex
                 if (regex.test(requestedPathWithoutQueryParams)) {
-                   await this.#readFile(fileSystemFilePath, onRead(staticRoutePathConfiguration.contentType), onError);
+                    await this.#readFile(fileSystemFilePath, onRead(staticRoutePathConfiguration.contentType), onError);
                     return;
                 }
             }

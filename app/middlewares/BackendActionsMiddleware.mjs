@@ -28,14 +28,16 @@ export class BackendActionsMiddleware {
     }
 
     /**
-     * @param {FluxEcoHttpServerConfig} serverConfig
+     * @param {FluxEcoNodeHttpServerConfig} serverConfig
      * @param {Object} api
      */
     static new(serverConfig, api) {
-        return new BackendActionsMiddleware(serverConfig.backend.actions, api)
+        return new BackendActionsMiddleware(serverConfig.schemas.actionsSchema, api)
     }
 
     async handleRequest(request, response, next) {
+
+
         const handleAction = async (actionName, actionParameters) => {
             try {
                 let result = {};
@@ -54,6 +56,8 @@ export class BackendActionsMiddleware {
                 sendError(response, 400);
             }
         }
+
+        console.log(this.#actions);
 
         for (const actionName in this.#actions) {
             if (this.#actions.hasOwnProperty(actionName)) {

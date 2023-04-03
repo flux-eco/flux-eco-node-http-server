@@ -1,10 +1,11 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
-import {MiddlewareChain} from "../middlewares/MiddlewareChain.mjs";
-import {CheckPoliciesMiddleware} from "../middlewares/CheckPoliciesMiddleware.mjs";
-import {BackendActionsMiddleware} from "../middlewares/BackendActionsMiddleware.mjs";
-import {FrontendFileMiddleware} from "../middlewares/FrontendFileMiddleware.mjs";
+
+import {MiddlewareChain} from "./middlewares/MiddlewareChain.mjs";
+import {CheckPoliciesMiddleware} from "./middlewares/CheckPoliciesMiddleware.mjs";
+import {BackendActionsMiddleware} from "./middlewares/BackendActionsMiddleware.mjs";
+import {FrontendFileMiddleware} from "./middlewares/FrontendFileMiddleware.mjs";
 
 /**
  * Represents the HTTP server.
@@ -14,7 +15,7 @@ export class FluxEcoNodeHttpServer {
     constructor(config, middlewareChain) {
         /**
          * The server configuration object.
-         * @type {HttpServerConfig}
+         * @type {FluxEcoNodeHttpServerConfig}
          */
         this.config = this.resolveEnvVariables(config);
 
@@ -33,7 +34,7 @@ export class FluxEcoNodeHttpServer {
 
     /**
      * Creates an instance of HttpServer.     *
-     * @param {FluxEcoHttpServerConfig} config - The server configuration object.
+     * @param {FluxEcoNodeHttpServerConfig} config - The server configuration object.
      * @param {Object|null} api
      * @return FluxEcoNodeHttpServer
      */
@@ -42,13 +43,14 @@ export class FluxEcoNodeHttpServer {
             config,
             await MiddlewareChain.new(
                 [
-                    await CheckPoliciesMiddleware.new(config),
                     await FrontendFileMiddleware.new(config),
                     await BackendActionsMiddleware.new(config, api)
                 ]
             )
         )
     }
+
+    //  await CheckPoliciesMiddleware.new(config),
 
     /**
      * Handles an incoming HTTP request.
@@ -64,8 +66,8 @@ export class FluxEcoNodeHttpServer {
      * @returns {void}
      */
     start() {
-        const port = this.config.server.port;
-        const host = this.config.server.host;
+        const port = this.config.settings.port
+        const host = this.config.settings.host;
 
         // Start the server listening on the specified port and host
         this.httpServer.listen(port, host, () => {
