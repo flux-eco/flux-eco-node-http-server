@@ -4,8 +4,8 @@ import path from "node:path";
 
 import {MiddlewareChain} from "./middlewares/MiddlewareChain.mjs";
 import {CheckPoliciesMiddleware} from "./middlewares/CheckPoliciesMiddleware.mjs";
-import {BackendActionsMiddleware} from "./middlewares/BackendActionsMiddleware.mjs";
-import {FrontendFileMiddleware} from "./middlewares/FrontendFileMiddleware.mjs";
+import {HttpRequestActionsMiddleware} from "./middlewares/HttpRequestActionsMiddleware.mjs";
+import {DomFilePathsMiddleware} from "./middlewares/DomFilePathsMiddleware.mjs";
 
 /**
  * Represents the HTTP server.
@@ -43,8 +43,8 @@ export class FluxEcoNodeHttpServer {
             config,
             await MiddlewareChain.new(
                 [
-                    await FrontendFileMiddleware.new(config),
-                    await BackendActionsMiddleware.new(config, api)
+                    await DomFilePathsMiddleware.new(config),
+                    await HttpRequestActionsMiddleware.new(config, api)
                 ]
             )
         )

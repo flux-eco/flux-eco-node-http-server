@@ -4,7 +4,7 @@ import {isPathInUrl} from "../handlers/isPathInUrl.mjs";
 import {sendError} from "../handlers/sendError.mjs";
 
 /** @typedef {import("node:http")} http */
-export class FrontendFileMiddleware {
+export class DomFilePathsMiddleware {
     /**
      * @property {Object.<string, Object.<string, FluxEcoBindingHttp.HttpStaticRoute>>} routes.static - Configuration for static routes.
      **/
@@ -22,7 +22,7 @@ export class FrontendFileMiddleware {
      * @param {FluxEcoNodeHttpServerConfig} config
      */
     static new(config) {
-        return new FrontendFileMiddleware(config.schemas.filePathsSchema)
+        return new DomFilePathsMiddleware(config.schemas.filePathsSchema)
     }
 
     /**
@@ -65,22 +65,12 @@ export class FrontendFileMiddleware {
             if (isPathInUrl(requestedPath, rootRelativeDirectoryName) === false) {
                 continue;
             }
-
             const questionMarkIndex = requestedPath.indexOf('?');
             const requestedPathWithoutQueryParams = (questionMarkIndex === -1) ? requestedPath : requestedPath.substr(0, questionMarkIndex);
 
             //the file system path of the requested file
             const fileSystemFilePath = path.join(process.cwd(), "dom-handler/public", requestedPathWithoutQueryParams);
-            console.log(fileSystemFilePath);
-            //todo if...
             await this.#readFile(fileSystemFilePath, onRead(staticRoutePathConfigurations.contentType), onError);
-
-
-            /**
-             * @var {HttpStaticRouteConfiguration} staticRoutePathConfiguration
-             */
-
-
         }
         next();
     }

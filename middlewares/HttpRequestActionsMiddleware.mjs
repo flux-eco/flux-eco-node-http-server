@@ -8,7 +8,7 @@ import {sendError} from "../handlers/sendError.mjs";
  * @returns {Object} - The result of the API method.
  * @throws {Error} - If an unknown action is requested or if parameter validation fails.
  */
-export class BackendActionsMiddleware {
+export class HttpRequestActionsMiddleware {
     /**
      * @var {Object}
      */
@@ -38,7 +38,7 @@ export class BackendActionsMiddleware {
     static new(serverConfig, api) {
         console.log("server config");
         console.log(serverConfig)
-        return new BackendActionsMiddleware(serverConfig.schemas.actionsSchema, api)
+        return new HttpRequestActionsMiddleware(serverConfig.schemas.actionsSchema, api)
     }
 
     async handleRequest(request, response, next) {
