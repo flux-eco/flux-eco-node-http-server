@@ -17,7 +17,7 @@ export class FluxEcoNodeHttpServer {
          * The server configuration object.
          * @type {FluxEcoNodeHttpServerConfig}
          */
-        this.config = this.resolveEnvVariables(config);
+        this.config = config;
 
         /**
          * The middleware chain to use for processing HTTP requests.

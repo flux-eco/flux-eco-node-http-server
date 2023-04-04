@@ -32,13 +32,12 @@ export class FrontendFileMiddleware {
      * @returns {Promise<void>}
      */
     async handleRequest(request, response, next) {
-
         let requestedPath = request.url;
 
         if (requestedPath === "/favicon.ico") {
-            // this.#handleResponse(response, headers, "");
+            sendError(response, 404)
+            return;
         }
-
 
         if (requestedPath.includes("..") || requestedPath.includes("//") || requestedPath.includes("\\")) {
             sendError(response, 403)
@@ -72,7 +71,7 @@ export class FrontendFileMiddleware {
 
             //the file system path of the requested file
             const fileSystemFilePath = path.join(process.cwd(), "dom-handler/public", requestedPathWithoutQueryParams);
-
+            console.log(fileSystemFilePath);
             //todo if...
             await this.#readFile(fileSystemFilePath, onRead(staticRoutePathConfigurations.contentType), onError);
 
@@ -80,15 +79,8 @@ export class FrontendFileMiddleware {
             /**
              * @var {HttpStaticRouteConfiguration} staticRoutePathConfiguration
              */
-            for await (const [staticRoutePath, staticRoutePathConfiguration] of Object.entries(staticRoutePathConfigurations)) {
 
-                const regex = new RegExp(`^${rootRelativeDirectoryName}${staticRoutePath.replace(/\*\*/g,  '.*')}$`);
-                //check regex
-                if (regex.test(requestedPathWithoutQueryParams)) {
-                    await this.#readFile(fileSystemFilePath, onRead(staticRoutePathConfiguration.contentType), onError);
-                    return;
-                }
-            }
+
         }
         next();
     }

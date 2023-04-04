@@ -23,8 +23,9 @@ export class MiddlewareChain {
                 }
                 return;
             }
-
-            return this.middlewares[currentHandlerIndex].handleRequest(request, response, next.bind(this));
+            if (!response.headersSent) {
+                return this.middlewares[currentHandlerIndex].handleRequest(request, response, next.bind(this));
+            }
         };
         return next();
     }

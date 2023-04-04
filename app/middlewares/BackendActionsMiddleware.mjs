@@ -16,15 +16,19 @@ export class BackendActionsMiddleware {
 
     #apiActions
 
-    #actions;
+    #actionsSchema;
 
     /**
      * @param actions
      * @param {Object} api
      */
     constructor(actions, api) {
+        this.#actionsSchema = actions;
+        console.log("#actionsSchema")
+        console.log(this.#actionsSchema)
+
         this.#api = api;
-        this.#actions = actions;
+
     }
 
     /**
@@ -32,6 +36,8 @@ export class BackendActionsMiddleware {
      * @param {Object} api
      */
     static new(serverConfig, api) {
+        console.log("server config");
+        console.log(serverConfig)
         return new BackendActionsMiddleware(serverConfig.schemas.actionsSchema, api)
     }
 
@@ -44,10 +50,10 @@ export class BackendActionsMiddleware {
                 result = await this.#api[actionName](actionParameters);
 
                 if (result) {
-                    response.writeHead(200, {'Content-Type': 'application/json'});
-                    response.write(JSON.stringify(result));
-                    response.end();
-                    return;
+                        response.writeHead(200, {'Content-Type': 'application/json'});
+                        response.write(JSON.stringify(result));
+                        response.end();
+
                 }
 
             } catch (err) {
@@ -57,17 +63,18 @@ export class BackendActionsMiddleware {
             }
         }
 
-        console.log(this.#actions);
-
-        for (const actionName in this.#actions) {
-            if (this.#actions.hasOwnProperty(actionName)) {
-                const actionDefinition = this.#actions[actionName];
-
+        for (const actionName in this.#actionsSchema) {
+            if (this.#actionsSchema.hasOwnProperty(actionName)) {
+                const actionSchema = this.#actionsSchema[actionName];
                 if (request.url.includes(actionName)) {
-                    console.log(actionDefinition);
-                    const action = actionDefinition;
+
+                    console.log("handle action with name...")
+                    console.log(actionName)
+                    console.log("with schema")
+                    console.log( this.#actionsSchema)
+
                     const handleActionParameters = {};
-                    const parameters = action.parameters;
+                    const parameters = actionSchema.parameters;
                     Object.entries(parameters).forEach(([parameterName, parameterSchema]) => {
                         if (request.url.includes(parameterName)) {
                             const url = request.url;
@@ -83,5 +90,6 @@ export class BackendActionsMiddleware {
                 }
             }
         }
+        next();
     }
 }
