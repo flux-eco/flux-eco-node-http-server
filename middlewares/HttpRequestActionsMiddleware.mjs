@@ -36,14 +36,10 @@ export class HttpRequestActionsMiddleware {
      * @param {Object} api
      */
     static new(serverConfig, api) {
-        console.log("server config");
-        console.log(serverConfig)
         return new HttpRequestActionsMiddleware(serverConfig.schemas.actionsSchema, api)
     }
 
     async handleRequest(request, response, next) {
-
-
         const handleAction = async (actionName, actionParameters) => {
             try {
                 let result = {};
@@ -53,7 +49,6 @@ export class HttpRequestActionsMiddleware {
                         response.writeHead(200, {'Content-Type': 'application/json'});
                         response.write(JSON.stringify(result));
                         response.end();
-
                 }
 
             } catch (err) {

@@ -6,16 +6,8 @@
 
 /**
  * @typedef {Object} FluxEcoNodeHttpServerSchemas
- * @property {FluxEcoNodeHttpServerActionsSchema} actionsSchema
- * @property {FluxEcoNodeHttpServerFilePathsSchemas} filePathsSchema
- */
-
-/**
- * @typedef {Object} FluxEcoNodeHttpServerActionsSchema
- */
-
-/**
- * @typedef {Object} FluxEcoNodeHttpServerFilePathsSchemas
+ * @property {FluxEcoActionsSchema} actionsSchema
+ * @property {FluxEcoFilePathsSchema} filePathsSchema
  */
 
 /**

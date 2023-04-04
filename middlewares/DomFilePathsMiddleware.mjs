@@ -22,6 +22,7 @@ export class DomFilePathsMiddleware {
      * @param {FluxEcoNodeHttpServerConfig} config
      */
     static new(config) {
+        console.log(config);
         return new DomFilePathsMiddleware(config.schemas.filePathsSchema)
     }
 
@@ -33,7 +34,7 @@ export class DomFilePathsMiddleware {
      */
     async handleRequest(request, response, next) {
         let requestedPath = request.url;
-
+        console.log(request.url);
         if (requestedPath === "/favicon.ico") {
             sendError(response, 404)
             return;
@@ -49,9 +50,9 @@ export class DomFilePathsMiddleware {
              * @var {Buffer} fileContent
              */
             return (fileContent) => {
-                if (!response.headersSent) {
+                //if (!response.headersSent) {
                     this.#handleResponse(response, headers, fileContent);
-                }
+                //}
             }
         });
         const onError = (number) => {
@@ -61,6 +62,8 @@ export class DomFilePathsMiddleware {
         }
 
         for await (const [rootRelativeDirectoryName, staticRoutePathConfigurations] of Object.entries(this.#filePaths)) {
+            console.log(rootRelativeDirectoryName)
+            console.log(staticRoutePathConfigurations)
             //rootRelativeDirectoryName is not within the current requestedPath
             if (isPathInUrl(requestedPath, rootRelativeDirectoryName) === false) {
                 continue;
@@ -71,6 +74,7 @@ export class DomFilePathsMiddleware {
             //the file system path of the requested file
             const fileSystemFilePath = path.join(process.cwd(), "dom-handler/public", requestedPathWithoutQueryParams);
             await this.#readFile(fileSystemFilePath, onRead(staticRoutePathConfigurations.contentType), onError);
+            return;
         }
         next();
     }
