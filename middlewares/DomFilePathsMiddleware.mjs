@@ -48,9 +48,7 @@ export class DomFilePathsMiddleware {
              * @var {Buffer} fileContent
              */
             return (fileContent) => {
-                //if (!response.headersSent) {
                 this.#handleResponse(response, headers, fileContent);
-                //}
             }
         });
         const onError = (number) => {
@@ -64,13 +62,12 @@ export class DomFilePathsMiddleware {
             if (isPathInUrl(requestedPath, schemaPath) === false) {
                 continue;
             }
-
             const questionMarkIndex = requestedPath.indexOf('?');
             const requestedPathWithoutQueryParams = (questionMarkIndex === -1) ? requestedPath : requestedPath.substring(0, questionMarkIndex);
 
             switch (filePathSchema.pathType) {
                 case "file": {
-                    const fileSystemFilePath = path.join(process.cwd(), "dom-handler/public", requestedPathWithoutQueryParams);
+                    const fileSystemFilePath = path.join(process.cwd(), "dom-handler", requestedPathWithoutQueryParams);
                     await this.#readFile(fileSystemFilePath, onRead(filePathSchema.contentType), onError);
                     return;
                 }

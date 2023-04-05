@@ -62,25 +62,22 @@ export class HttpRequestActionsMiddleware {
             if (this.#actionsSchema.hasOwnProperty(actionName)) {
                 const actionSchema = this.#actionsSchema[actionName];
                 if (request.url.includes(actionName)) {
-
-                    console.log("handle action with name...")
-                    console.log(actionName)
-                    console.log("with schema")
-                    console.log( this.#actionsSchema)
-
                     const handleActionParameters = {};
-                    const parameters = actionSchema.parameters;
-                    Object.entries(parameters).forEach(([parameterName, parameterSchema]) => {
-                        if (request.url.includes(parameterName)) {
-                            const url = request.url;
-                            const urlParts = url.split("/");
-                            urlParts.forEach((partValue, partPosition) => {
-                                if (partValue === parameterName) {
-                                    handleActionParameters[parameterName] = urlParts[(partPosition + 1)];
-                                }
-                            });
-                        }
-                    });
+                    if(actionSchema.hasOwnProperty("parameters")) {
+                        const parameters = actionSchema.parameters;
+                        Object.entries(parameters).forEach(([parameterName, parameterSchema]) => {
+                            if (request.url.includes(parameterName)) {
+                                const url = request.url;
+                                const urlParts = url.split("/");
+                                urlParts.forEach((partValue, partPosition) => {
+                                    if (partValue === parameterName) {
+                                        handleActionParameters[parameterName] = urlParts[(partPosition + 1)];
+                                    }
+                                });
+                            }
+                        });
+                    }
+
                     await handleAction(actionName, handleActionParameters);
                 }
             }
