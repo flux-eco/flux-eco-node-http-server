@@ -6,23 +6,21 @@ import {sendError} from "../handlers/sendError.mjs";
 /** @typedef {import("node:http")} http */
 export class DomFilePathsMiddleware {
     /**
-     * @property {Object.<string, Object.<string, FluxEcoBindingHttp.HttpStaticRoute>>} routes.static - Configuration for static routes.
+     * @property {FluxEcoFilePathsSchema} filePathsSchema
      **/
-    #filePaths;
+    #filePathsSchema;
 
     /**
-     * @property {Object.<string, Object.<string, FluxEcoBindingHttp.HttpStaticRoute>>} routes.static - Configuration for static routes.
+     * @property {FluxEcoFilePathsSchema} filePathsSchema
      */
-    constructor(filePaths) {
-        console.log(filePaths);
-        this.#filePaths = filePaths;
+    constructor(filePathsSchema) {
+        this.#filePathsSchema = filePathsSchema;
     }
 
     /**
      * @param {FluxEcoNodeHttpServerConfig} config
      */
     static new(config) {
-        console.log(config);
         return new DomFilePathsMiddleware(config.schemas.filePathsSchema)
     }
 
@@ -51,7 +49,7 @@ export class DomFilePathsMiddleware {
              */
             return (fileContent) => {
                 //if (!response.headersSent) {
-                    this.#handleResponse(response, headers, fileContent);
+                this.#handleResponse(response, headers, fileContent);
                 //}
             }
         });
@@ -61,20 +59,22 @@ export class DomFilePathsMiddleware {
             }
         }
 
-        for await (const [rootRelativeDirectoryName, staticRoutePathConfigurations] of Object.entries(this.#filePaths)) {
-            console.log(rootRelativeDirectoryName)
-            console.log(staticRoutePathConfigurations)
-            //rootRelativeDirectoryName is not within the current requestedPath
-            if (isPathInUrl(requestedPath, rootRelativeDirectoryName) === false) {
+        for await (const [schemaPath, filePathSchema] of Object.entries(this.#filePathsSchema)) {
+            //path is not within the current requestedPath
+            if (isPathInUrl(requestedPath, schemaPath) === false) {
                 continue;
             }
-            const questionMarkIndex = requestedPath.indexOf('?');
-            const requestedPathWithoutQueryParams = (questionMarkIndex === -1) ? requestedPath : requestedPath.substr(0, questionMarkIndex);
 
-            //the file system path of the requested file
-            const fileSystemFilePath = path.join(process.cwd(), "dom-handler/public", requestedPathWithoutQueryParams);
-            await this.#readFile(fileSystemFilePath, onRead(staticRoutePathConfigurations.contentType), onError);
-            return;
+            const questionMarkIndex = requestedPath.indexOf('?');
+            const requestedPathWithoutQueryParams = (questionMarkIndex === -1) ? requestedPath : requestedPath.substring(0, questionMarkIndex);
+
+            switch (filePathSchema.pathType) {
+                case "file": {
+                    const fileSystemFilePath = path.join(process.cwd(), "dom-handler/public", requestedPathWithoutQueryParams);
+                    await this.#readFile(fileSystemFilePath, onRead(filePathSchema.contentType), onError);
+                    return;
+                }
+            }
         }
         next();
     }
