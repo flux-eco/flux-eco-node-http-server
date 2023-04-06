@@ -40,7 +40,6 @@ export class FluxEcoNodeHttpServer {
             config,
             await MiddlewareChain.new(
                 [
-                    await CheckPoliciesMiddleware.new(config),
                     await StaticFileMiddleware.new(config),
                     await ActionsMiddleware.new(config, api)
                 ]

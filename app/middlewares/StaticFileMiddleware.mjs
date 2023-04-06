@@ -44,7 +44,7 @@ export class StaticFileMiddleware {
 
         const onRead = await ((headers) => {
             /**
-             * @var {Buffer} fileContent
+             * @var {string} fileContent
              */
             return (fileContent) => {
                 if (!response.headersSent) {
@@ -98,20 +98,9 @@ export class StaticFileMiddleware {
      * @return {Promise<void>}
      */
     async #readFile(fileSystemFilePath, onRead, onError) {
-        try {
-            await fs.promises.access(fileSystemFilePath, fs.constants.R_OK);
-        } catch (err) {
-            console.log(err);
-            onError(403)
-        }
-        try {
-            const fileContent = await fs.promises.readFile(fileSystemFilePath);
-            const contentAsString = fileContent.toString();
-            onRead(contentAsString);
-        } catch (err) {
-            console.error(`Error reading file: ${fileSystemFilePath}`, err);
-            onError(500)
-        }
+        const data = await fs.readFileSync(fileSystemFilePath)
+        const dataString = data.toString();
+        onRead(dataString);
     }
 
     /**
@@ -122,8 +111,7 @@ export class StaticFileMiddleware {
      * @return {Promise<void>}
      */
     async #handleResponse(response, contentType, content) {
-        response.setHeader("Content-Type", contentType);
-        response.setHeader("Content-Length", content.length);
+        response.writeHead(200, {'Content-Type': contentType});
         response.end(content)
     }
 }
