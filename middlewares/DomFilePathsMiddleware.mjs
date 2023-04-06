@@ -6,22 +6,23 @@ import {sendError} from "../handlers/sendError.mjs";
 /** @typedef {import("node:http")} http */
 export class DomFilePathsMiddleware {
     /**
-     * @property {FluxEcoFilePathsSchema} filePathsSchema
-     **/
-    #filePathsSchema;
+     * @property {FluxEcoFilePaths} filePathsSchema
+     */
+    #filePaths;
 
     /**
-     * @property {FluxEcoFilePathsSchema} filePathsSchema
+     * @property {FluxEcoFilePaths} filePaths
      */
-    constructor(filePathsSchema) {
-        this.#filePathsSchema = filePathsSchema;
+    constructor(filePaths) {
+        this.#filePaths = filePaths;
     }
 
     /**
-     * @param {FluxEcoNodeHttpServerConfig} config
+     * @param {FluxEcoNodeHttpServerSettings} settings
      */
-    static new(config) {
-        return new DomFilePathsMiddleware(config.schemas.filePathsSchema)
+    static new(settings) {
+        console.log(settings);
+        return new DomFilePathsMiddleware(settings.domFilePaths)
     }
 
     /**
@@ -57,18 +58,19 @@ export class DomFilePathsMiddleware {
             }
         }
 
-        for await (const [schemaPath, filePathSchema] of Object.entries(this.#filePathsSchema)) {
+
+        for await (const [filePath, filePathDefinition] of Object.entries(this.#filePaths)) {
             //path is not within the current requestedPath
-            if (isPathInUrl(requestedPath, schemaPath) === false) {
+            if (isPathInUrl(requestedPath, filePath) === false) {
                 continue;
             }
             const questionMarkIndex = requestedPath.indexOf('?');
             const requestedPathWithoutQueryParams = (questionMarkIndex === -1) ? requestedPath : requestedPath.substring(0, questionMarkIndex);
 
-            switch (filePathSchema.pathType) {
+            switch (filePathDefinition.pathType) {
                 case "file": {
                     const fileSystemFilePath = path.join(process.cwd(), "dom-handler", requestedPathWithoutQueryParams);
-                    await this.#readFile(fileSystemFilePath, onRead(filePathSchema.contentType), onError);
+                    await this.#readFile(fileSystemFilePath, onRead(filePathDefinition.contentType), onError);
                     return;
                 }
             }
@@ -85,20 +87,26 @@ export class DomFilePathsMiddleware {
      * @return {Promise<void>}
      */
     async #readFile(fileSystemFilePath, onRead, onError) {
-        try {
-            await fs.promises.access(fileSystemFilePath, fs.constants.R_OK);
-        } catch (err) {
-            console.log(err);
-            onError(403)
-        }
-        try {
-            const fileContent = await fs.promises.readFile(fileSystemFilePath);
-            const contentAsString = fileContent.toString();
-            onRead(contentAsString);
-        } catch (err) {
-            console.error(`Error reading file: ${fileSystemFilePath}`, err);
-            onError(500)
-        }
+
+        const data = await fs.readFileSync(fileSystemFilePath)
+        const dataString = data.toString();
+        onRead(dataString);
+
+        /*
+            try {
+                await fs.promises.access(fileSystemFilePath, fs.constants.R_OK);
+            } catch (err) {
+                console.log(err);
+                onError(403)
+            }
+            try {
+                const fileContent = await fs.promises.readFile(fileSystemFilePath);
+                const contentAsString = fileContent.toString();
+                onRead(contentAsString);
+            } catch (err) {
+                console.error(`Error reading file: ${fileSystemFilePath}`, err);
+                onError(500)
+            }*/
     }
 
     /**

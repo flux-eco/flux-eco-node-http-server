@@ -14,29 +14,27 @@ export class HttpRequestActionsMiddleware {
      */
     #api
 
-    #apiActions
-
-    #actionsSchema;
+    #actions;
 
     /**
      * @param actions
      * @param {Object} api
      */
     constructor(actions, api) {
-        this.#actionsSchema = actions;
-        console.log("#actionsSchema")
-        console.log(this.#actionsSchema)
+        this.#actions = actions;
+        console.log("#actions")
+        console.log(this.#actions)
 
         this.#api = api;
 
     }
 
     /**
-     * @param {FluxEcoNodeHttpServerConfig} serverConfig
+     * @param {FluxEcoNodeHttpServerSettings} settings
      * @param {Object} api
      */
-    static new(serverConfig, api) {
-        return new HttpRequestActionsMiddleware(serverConfig.schemas.actionsSchema, api)
+    static new(settings, api) {
+        return new HttpRequestActionsMiddleware(settings.httpRequestActions, api)
     }
 
     async handleRequest(request, response, next) {
@@ -58,9 +56,9 @@ export class HttpRequestActionsMiddleware {
             }
         }
 
-        for (const actionName in this.#actionsSchema) {
-            if (this.#actionsSchema.hasOwnProperty(actionName)) {
-                const actionSchema = this.#actionsSchema[actionName];
+        for (const actionName in this.#actions) {
+            if (this.#actions.hasOwnProperty(actionName)) {
+                const actionSchema = this.#actions[actionName];
                 if (request.url.includes(actionName)) {
                     const handleActionParameters = {};
                     if(actionSchema.hasOwnProperty("parameters")) {
@@ -71,12 +69,23 @@ export class HttpRequestActionsMiddleware {
                                 const urlParts = url.split("/");
                                 urlParts.forEach((partValue, partPosition) => {
                                     if (partValue === parameterName) {
-                                        handleActionParameters[parameterName] = urlParts[(partPosition + 1)];
+
+                                        if(parameterSchema.type === "object") {
+                                            const urlObjectParameters =  urlParts[(partPosition + 1)];
+                                            const keyValue = urlObjectParameters.split(":"); //todo more than one key-value-pair
+                                            const keyValueObject = {};
+                                            keyValueObject[keyValue[0]] = keyValue[1]
+                                            handleActionParameters[parameterName] = keyValueObject
+                                        } else {
+                                            handleActionParameters[parameterName] = urlParts[(partPosition + 1)];
+                                        }
                                     }
                                 });
                             }
                         });
                     }
+
+                    console.log(actionName);
 
                     await handleAction(actionName, handleActionParameters);
                 }

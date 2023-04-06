@@ -27,7 +27,6 @@ export class FluxEcoNodeHttpServer {
 
         /**
          * The HTTP server instance.
-         * @type {http.Server}
          */
         this.httpServer = http.createServer(this.handleRequest.bind(this));
     }
@@ -43,8 +42,8 @@ export class FluxEcoNodeHttpServer {
             config,
             await MiddlewareChain.new(
                 [
-                    await DomFilePathsMiddleware.new(config),
-                    await HttpRequestActionsMiddleware.new(config, api)
+                    await DomFilePathsMiddleware.new(config.settings),
+                    await HttpRequestActionsMiddleware.new(config.settings, api)
                 ]
             )
         )
@@ -83,8 +82,4 @@ export class FluxEcoNodeHttpServer {
         this.httpServer.close();
         console.log('Server stopped');
     }
-
-
-
-
 }
