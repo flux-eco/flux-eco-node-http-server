@@ -68,8 +68,9 @@ export class DomFilePathsMiddleware {
             const questionMarkIndex = requestedPath.indexOf('?');
             const requestedPathWithoutQueryParams = (questionMarkIndex === -1) ? requestedPath : requestedPath.substr(0, questionMarkIndex);
 
+            //dom-handler/public
             //the file system path of the requested file
-            const fileSystemFilePath = path.join(process.cwd(), "dom-handler/public", requestedPathWithoutQueryParams);
+            const fileSystemFilePath = path.join(process.cwd(), "", requestedPathWithoutQueryParams);
             await this.#readFile(fileSystemFilePath, onRead(staticRoutePathConfigurations.contentType), onError);
         }
         next();
